@@ -1,0 +1,33 @@
+{
+  "name": "next-page-kit",
+  "version": "0.0.1",
+  "description": "Helper for handle next-next page",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha",
+    "test-cover": "istanbul cover _mocha -- -u exports"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/magicdawn/next-page-kit.git"
+  },
+  "keywords": [
+    "next",
+    "page",
+    "next-next"
+  ],
+  "author": "magicdawn",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/magicdawn/next-page-kit/issues"
+  },
+  "homepage": "https://github.com/magicdawn/next-page-kit#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "coveralls": "^2.11.9",
+    "eslint": "^2.10.1",
+    "istanbul": "^0.4.3",
+    "mocha": "^2.4.5",
+    "should": "^8.3.1"
+  }
+}
