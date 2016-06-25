@@ -15,16 +15,6 @@ const _ = require('lodash')
 const debug = require('debug')('next-page:index')
 const isPromise = require('is-promise')
 
-/**
- * utils
- */
-
-const NOT_IMPLEMENTED = 'not implemented'
-const notImplemented = () => {
-  throw new Error(NOT_IMPLEMENTED)
-}
-
-
 const NextPage = exports = module.exports = class NextPage {
   constructor(options) {
     _.assign(this, options)
@@ -35,19 +25,13 @@ const NextPage = exports = module.exports = class NextPage {
   }
 
   // 当前页
-  action($) {
-    notImplemented()
-  }
+  action($) {}
 
   // 翻页 ?
-  hasNext($) {
-    notImplemented()
-  }
+  hasNext($) {}
 
   // 下页 url
-  getNext($) {
-    notImplemented()
-  }
+  getNext($) {}
 }
 
 NextPage.prototype.run = co.wrap(function*(url, options) {
