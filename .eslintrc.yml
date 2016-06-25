@@ -12,7 +12,7 @@ env:
 # rules
 rules:
   # basic
-  semi: [2, never] # ;
+  semi: [2, always] # ;
   indent: [2, 2]
   quotes: [2, single] # '' | ""
   eqeqeq: 2 # ===
