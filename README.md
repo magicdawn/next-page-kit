@@ -41,7 +41,7 @@ const n = new NextPage({
   }
 });
 
-yield n.init()
+yield n.run()
 ```
 
 ### `n.run`
