@@ -8,14 +8,52 @@
 [![npm license](https://img.shields.io/npm/l/next-page-kit.svg?style=flat-square)](http://magicdawn.mit-license.org)
 
 ## Install
-```
-npm i next-page-kit --save
+```shell
+npm i next-page-kit -S
 ```
 
 ## API
+```js
+const NextPage = require('next-page-kit');
 ```
-const nextPageKit = require('next-page-kit');
+
+### `n = new NextPage`
+- `init`/`postInit` : hook function. return a promise is also supported
+- `action`/`hasNext`/`getNext`: the logic
+
+```js
+const n = new NextPage({
+  init() {
+
+  },
+  postInit() {
+
+  },
+
+  action($) {
+
+  },
+  hasNext($) {
+
+  },
+  getNext($) {
+
+  }
+});
+
+yield n.init()
 ```
+
+### `n.run`
+
+```js
+n.run(url, options)
+```
+
+- `url`: the entry
+- `options`:
+  - `enc`: the html encoding
+  - `limit`: page limit
 
 ## Changelog
 [CHANGELOG.md](CHANGELOG.md)
