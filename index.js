@@ -19,7 +19,7 @@ const NextPage = exports = module.exports = class NextPage {
   constructor(options) {
     _.assign(this, options)
 
-    if (!this.action || !this.hasNext || !this.getNext) {
+    if (!options || !options.action || !options.hasNext || !options.getNext) {
       throw new TypeError('action/hasNext/getNext can not be empty')
     }
   }
@@ -36,15 +36,15 @@ const NextPage = exports = module.exports = class NextPage {
 
 NextPage.prototype.run = co.wrap(function*(url, options) {
   let html, $, index, p
-
-  // init
-  if (isPromise(p = this.init())) {
-    yield p
-  }
-
   options = options || {}
   const enc = options.enc
   const limit = options.limit || Infinity // 无限制页数
+  if (!url) throw new Error('url can not be empty')
+
+  // init
+  if (this.init && isPromise(p = this.init())) {
+    yield p
+  }
 
   index = 0
   debug('process: index = %s, url = %s', index, url)
@@ -71,21 +71,7 @@ NextPage.prototype.run = co.wrap(function*(url, options) {
   }
 
   // postInit
-  if (isPromise(p = this.postInit())) {
+  if (this.postInit && isPromise(p = this.postInit())) {
     yield p
   }
 })
-
-/**
- * 添加末尾 `/`
- */
-
-const ensureTrailingSlash = exports.ensureTrailingSlash = function(url) {
-  const parsed = URL.parse(url)
-  const pathname = parsed.pathname
-
-  // ensure pathname
-  if (!_.endsWith(pathname, '/')) parsed.pathname += '/'
-
-  return URL.format(parsed)
-}
