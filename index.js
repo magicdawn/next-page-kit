@@ -1,75 +1,106 @@
-'use strict';
+'use strict'
 
 /**
  * module dependencies
  */
 
-const fs = require('fs-extra');
-const path = require('path');
-const co = require('co');
-const cheerio = require('cheerio');
-const request = require('superagent');
-require('superagent-charset')(request);
-
+const fs = require('fs-extra')
+const path = require('path')
+const URL = require('url')
+const co = require('co')
+const cheerio = require('cheerio')
+const request = require('superagent')
+require('superagent-charset')(request)
+const _ = require('lodash')
+const debug = require('debug')('next-page:index')
 
 /**
  * utils
  */
 
-const NOT_IMPLEMENTED = 'not implemented';
+const NOT_IMPLEMENTED = 'not implemented'
 const notImplemented = () => {
-  throw new Error(NOT_IMPLEMENTED);
-};
+  throw new Error(NOT_IMPLEMENTED)
+}
 
 
 const NextPage = exports = module.exports = class NextPage {
-  constructor(fns) {
-    if (!fns || !fns.action || !fns.hasNext || !fns.getNext) {
-      throw new TypeError('action/hasNext/getNext can not be empty');
+  constructor(options) {
+    _.assign(this, options)
+
+    if (!this.action || !this.hasNext || !this.getNext) {
+      throw new TypeError('action/hasNext/getNext can not be empty')
+    }
+
+    // init
+    if (this.init) {
+      this.init()
     }
   }
 
   // 当前页
   action($) {
-    notImplemented();
+    notImplemented()
   }
 
   // 翻页 ?
   hasNext($) {
-    notImplemented();
+    notImplemented()
   }
 
   // 下页 url
   getNext($) {
-    notImplemented();
+    notImplemented()
   }
-};
+}
 
 NextPage.prototype.run = co.wrap(function*(url, options) {
-  let html, $;
+  let html, $, index
 
   // options
-  options = options || {};
-  const enc = options.enc;
+  options = options || {}
+  const enc = options.enc
+  const limit = options.limit || Infinity // 无限制
 
-  html = yield request.get(url).charset(enc);
-  $ = cheerio.load(html);
-  this.action($);
+  index = 0
+  debug('process: index = %s, url = %s', index, url)
+  html = yield request
+    .get(url)
+    .charset(enc)
+    .then(res => res.text)
+  $ = cheerio.load(html)
+  $._currentUrl = url
+  this.action($)
 
-  while (this.hasNext($)) {
-    const rel = this.getNext($);
-    url = path.resolve(url, rel);
-    url = normalizeUrl(url);
+  while (this.hasNext($) && ++index < limit) {
+    const rel = this.getNext($)
+    url = URL.resolve(url, rel)
+    // url = ensureTrailingSlash(url)
 
-    html = yield request.get(url).charset(enc);
-    $ = cheerio.load(html);
-    this.action($);
+    debug('process: index = %s, url = %s', index, url)
+    html = yield request
+      .get(url)
+      .charset(enc)
+      .then(res => res.text)
+    $ = cheerio.load(html)
+    $._currentUrl = url
+    this.action($)
   }
-});
 
-function normalizeUrl(url) {
-  if (path.extname(url) === '' && url[url.length - 1] !== '/') {
-    url += '/';
-  }
-  return url;
+  // postInit
+  if(this.postInit) this.postInit()
+})
+
+/**
+ * 添加末尾 `/`
+ */
+
+const ensureTrailingSlash = exports.ensureTrailingSlash = function(url) {
+  const parsed = URL.parse(url)
+  const pathname = parsed.pathname
+
+  // ensure pathname
+  if (!_.endsWith(pathname, '/')) parsed.pathname += '/'
+
+  return URL.format(parsed)
 }
