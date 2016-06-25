@@ -13,6 +13,7 @@ const request = require('superagent')
 require('superagent-charset')(request)
 const _ = require('lodash')
 const debug = require('debug')('next-page:index')
+const isPromise = require('is-promise')
 
 /**
  * utils
@@ -30,11 +31,6 @@ const NextPage = exports = module.exports = class NextPage {
 
     if (!this.action || !this.hasNext || !this.getNext) {
       throw new TypeError('action/hasNext/getNext can not be empty')
-    }
-
-    // init
-    if (this.init) {
-      this.init()
     }
   }
 
@@ -55,12 +51,16 @@ const NextPage = exports = module.exports = class NextPage {
 }
 
 NextPage.prototype.run = co.wrap(function*(url, options) {
-  let html, $, index
+  let html, $, index, p
 
-  // options
+  // init
+  if (isPromise(p = this.init())) {
+    yield p
+  }
+
   options = options || {}
   const enc = options.enc
-  const limit = options.limit || Infinity // 无限制
+  const limit = options.limit || Infinity // 无限制页数
 
   index = 0
   debug('process: index = %s, url = %s', index, url)
@@ -75,7 +75,6 @@ NextPage.prototype.run = co.wrap(function*(url, options) {
   while (this.hasNext($) && ++index < limit) {
     const rel = this.getNext($)
     url = URL.resolve(url, rel)
-    // url = ensureTrailingSlash(url)
 
     debug('process: index = %s, url = %s', index, url)
     html = yield request
@@ -88,7 +87,9 @@ NextPage.prototype.run = co.wrap(function*(url, options) {
   }
 
   // postInit
-  if(this.postInit) this.postInit()
+  if (isPromise(p = this.postInit())) {
+    yield p
+  }
 })
 
 /**
