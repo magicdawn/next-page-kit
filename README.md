@@ -1,4 +1,6 @@
 # next-page-kit
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/magicdawn/next-page-kit.svg)](https://greenkeeper.io/)
 > Helper for handle next-next page
 
 [![Build Status](https://img.shields.io/travis/magicdawn/next-page-kit.svg?style=flat-square)](https://travis-ci.org/magicdawn/next-page-kit)
