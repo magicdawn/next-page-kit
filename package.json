@@ -3,6 +3,14 @@
   "version": "0.0.3",
   "description": "Helper for handle next-next page",
   "main": "index.js",
+  "types": "types/index.d.ts",
+  "files": [
+    "index.js",
+    "types/index.d.ts",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "test": "mocha",
     "test-cover": "nyc --reporter=lcov --reporter=text mocha",
@@ -33,6 +41,7 @@
   "devDependencies": {
     "@magicdawn/eslint-config": "latest",
     "@magicdawn/prettier-config": "latest",
+    "@types/cheerio": "^0.22.16",
     "codecov": "^3.3.0",
     "eslint": "^6.8.0",
     "husky": "latest",
@@ -41,14 +50,9 @@
     "nyc": "^15.0.0",
     "prettier": "latest",
     "promise.delay": "^0.0.1",
-    "should": "^13.2.3"
+    "should": "^13.2.3",
+    "tsd": "^0.11.0"
   },
-  "files": [
-    "index.js",
-    "package.json",
-    "README.md",
-    "LICENSE"
-  ],
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged"
