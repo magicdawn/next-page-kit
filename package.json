@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
-    "test-cover": "istanbul cover _mocha -- -u exports"
+    "test-cover": "nyc --reporter=lcov --reporter=text mocha",
+    "report-cover": "codecov"
   },
   "repository": {
     "type": "git",
@@ -23,28 +24,39 @@
   },
   "homepage": "https://github.com/magicdawn/next-page-kit#readme",
   "dependencies": {
-    "cheerio": "^0.20.0",
-    "co": "^4.6.0",
-    "debug": "^2.2.0",
-    "fs-extra": "^0.30.0",
-    "is-promise": "^2.1.0",
-    "lodash": "^4.13.1",
-    "superagent": "^2.0.0",
-    "superagent-charset": "^1.1.1"
+    "cheerio": "^0.22.0",
+    "debug": "^4.1.1",
+    "lodash": "^4.17.15",
+    "umi-request": "^1.2.18"
   },
   "devDependencies": {
-    "co-mocha": "^1.1.2",
-    "coveralls": "^2.11.9",
-    "eslint": "^2.10.1",
-    "istanbul": "^0.4.3",
-    "mocha": "^2.4.5",
+    "@magicdawn/eslint-config": "latest",
+    "@magicdawn/prettier-config": "latest",
+    "codecov": "^3.3.0",
+    "eslint": "^6.8.0",
+    "husky": "latest",
+    "lint-staged": "latest",
+    "mocha": "^7.0.1",
+    "nyc": "^15.0.0",
+    "prettier": "latest",
     "promise.delay": "^0.0.1",
-    "should": "^9.0.2"
+    "should": "^13.2.3"
   },
   "files": [
     "index.js",
     "package.json",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,less,vue}": [
+      "prettier --write",
+      "git add"
+    ]
+  }
 }

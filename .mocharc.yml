@@ -1,0 +1,4 @@
+require: [should]
+reporter: spec
+timeout: 20000
+recursive: true

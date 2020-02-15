@@ -1,77 +1,78 @@
-'use strict';
+const cheerio = require('cheerio')
+const _ = require('lodash')
+const isPromise = require('is-promise')
+const umi = require('umi-request')
+const debug = require('debug')('next-page-kit:index')
 
-/**
- * module dependencies
- */
+const NOT_IMPLEMENTED = 'not implemented'
+const request = umi.extend({})
 
-const fs = require('fs-extra');
-const path = require('path');
-const URL = require('url');
-const co = require('co');
-const cheerio = require('cheerio');
-const request = require('superagent');
-require('superagent-charset')(request);
-const _ = require('lodash');
-const debug = require('debug')('next-page:index');
-const isPromise = require('is-promise');
-
-const NextPage = exports = module.exports = class NextPage {
-  constructor(options) {
-    _.assign(this, options);
-
-    if (!options || !options.action || !options.hasNext || !options.getNext) {
-      throw new TypeError('action/hasNext/getNext can not be empty');
+module.exports = class NextPageKit {
+  constructor(options = {}) {
+    if (!options || !options.getCurrent || !options.hasNext || !options.getNext) {
+      throw new TypeError('getCurrent/hasNext/getNext can not be empty')
     }
+    Object.assign(this, _.pick(options, ['getCurrent', 'hasNext', 'getNext']))
+
+    // charset
+    this.charset = options.charset || 'utf8'
   }
 
   // 当前页
-  action($) {}
+  getCurrent($) {
+    /* istanbul ignore next */
+    throw new Error(NOT_IMPLEMENTED)
+  }
 
   // 翻页 ?
-  hasNext($) {}
+  hasNext($) {
+    /* istanbul ignore next */
+    throw new Error(NOT_IMPLEMENTED)
+  }
 
   // 下页 url
-  getNext($) {}
-};
-
-NextPage.prototype.run = co.wrap(function*(url, options) {
-  let html, $, index, p;
-  options = options || {};
-  const enc = options.enc;
-  const limit = options.limit || Infinity; // 无限制页数
-  if (!url) throw new Error('url can not be empty');
-
-  // init
-  if (this.init && isPromise(p = this.init())) {
-    yield p;
+  getNext($) {
+    /* istanbul ignore next */
+    throw new Error(NOT_IMPLEMENTED)
   }
 
-  index = 0;
-  debug('process: index = %s, url = %s', index, url);
-  html = yield request
-    .get(url)
-    .charset(enc)
-    .then(res => res.text);
-  $ = cheerio.load(html);
-  $._currentUrl = url;
-  this.action($);
+  async run(url, options = {}) {
+    let p
+    const charset = options.charset || 'utf8'
+    const limit = options.limit || Infinity // 无限制页数
+    if (!url) throw new Error('url can not be empty')
 
-  while (this.hasNext($) && ++index < limit) {
-    const rel = this.getNext($);
-    url = URL.resolve(url, rel);
+    const get$ = async link => {
+      let html = await request.get(url, {
+        charset,
+        responseType: 'text',
+      })
+      $ = cheerio.load(html, {decodeEntities: false})
+      $._currentUrl = url
+      return $
+    }
 
-    debug('process: index = %s, url = %s', index, url);
-    html = yield request
-      .get(url)
-      .charset(enc)
-      .then(res => res.text);
-    $ = cheerio.load(html);
-    $._currentUrl = url;
-    this.action($);
+    let resultArr = []
+    let $
+    let pageResult
+
+    // first page
+    let index = 0
+    debug('process: index = %s, url = %s', index, url)
+    $ = await get$(url)
+    pageResult = await this.getCurrent($)
+    resultArr.push(pageResult)
+
+    while (this.hasNext($) && ++index < limit) {
+      const rel = this.getNext($)
+      url = new URL(rel, url).href
+
+      debug('process: index = %s, url = %s', index, url)
+      $ = await get$(url)
+      pageResult = await this.getCurrent($)
+      resultArr.push(pageResult)
+    }
+
+    return resultArr.flat()
   }
-
-  // postInit
-  if (this.postInit && isPromise(p = this.postInit())) {
-    yield p;
-  }
-});
+}

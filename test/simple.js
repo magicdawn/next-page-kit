@@ -1,108 +1,93 @@
-'use strict';
-
-/**
- * module dependencies
- */
-
-const resolve = require('url').resolve;
-const should = require('should');
-const _ = require('lodash');
-const co = require('co');
-const sleep = require('promise.delay');
-const NextPage = require('../');
+const should = require('should')
+const _ = require('lodash')
+const sleep = require('promise.delay')
+const NextPageKit = require('../')
 
 describe('Simple', function() {
+  it('it works', async () => {
+    const n = new NextPageKit({
+      getCurrent($) {
+        const topics = $('#TopicsNode .cell')
+          .map((_, el) => {
+            const $el = $(el)
 
-  it('it works', function*() {
-    const n = new NextPage({
-      init() {
-        this.topics = [];
-      },
+            // url
+            let url = $el.find('.item_title a').attr('href')
+            url = new URL(url, $._currentUrl).href
 
-      postInit() {
-        this.topics = _.flatten(this.topics);
-      },
-
-      action($) {
-        const topics = $('#TopicsNode .cell').map((_, el) => {
-          const $el = $(el);
-
-          // url
-          let url = $el.find('.item_title a').attr('href');
-          url = resolve($._currentUrl, url);
-
-          return {
-            title: $el.find('.item_title').text(),
-            author: $el.find('.item_title').next().next().find('strong').text(),
-            url: url
-          };
-        }).get();
-
-        this.topics.push(topics);
+            return {
+              title: $el.find('.item_title').text(),
+              author: $el
+                .find('.item_title')
+                .next()
+                .next()
+                .find('strong')
+                .text(),
+              url: url,
+            }
+          })
+          .get()
+        return topics
       },
 
       hasNext($) {
-        return true;
+        return true
       },
 
       getNext($) {
-        return $('.page_current').eq(0).next().attr('href');
-      }
-    });
-
-    yield n.run('http://v2ex.com/go/share', {
-      limit: 3
-    });
-
-    n.topics.should.be.Array();
-    n.topics.length.should.equal(20 * 3);
-  });
-
-  it('async init/postInit', function*() {
-    const n = new NextPage({
-      init: co.wrap(function*() {
-        yield sleep(10);
-        this.x = 'x';
-      }),
-
-      postInit: co.wrap(function*() {
-        this.y = 'y';
-      }),
-
-      action($) {
-        this.title = $('title').text();
+        return $('.page_current')
+          .eq(0)
+          .next()
+          .attr('href')
       },
-      hasNext: $ => false,
-      getNext: $ => undefined
-    });
+    })
 
-    yield n.run('http://www.qq.com/');
-    n.x.should.equal('x');
-    n.y.should.equal('y');
-    n.title.should.match(/腾讯/);
-  });
-});
+    const limit = 2
+    const topics = await n.run('https://v2ex.com/go/share', {limit})
+    topics.should.be.Array()
+    topics.length.should.equal(20 * limit)
+  })
+
+  // why skip
+  // 不写 gbk 也可以 pass
+  // 不知道是 node-fetch / umi-request / 163.com 哪一方的问题
+  it.skip('other charset works', async () => {
+    const n = new NextPageKit({
+      charset: 'gbk',
+      getCurrent($) {
+        console.log($.html())
+        return $('title').text()
+      },
+      hasNext: () => false,
+      getNext: () => null,
+    })
+    const [title] = await n.run('https://www.163.com/')
+    title.should.equal('网易')
+  })
+})
 
 describe('Error', function() {
-  it('when action/hasNext/getNext empty', function*() {
-    (function() {
-      new NextPage();
-    }).should.throw(/action/).throw(/empty/);
-  });
+  it('when getCurrent/hasNext/getNext empty', () => {
+    ;(function() {
+      new NextPageKit()
+    }.should
+      .throw(/getCurrent/)
+      .throw(/empty/))
+  })
 
-  it('when url empty in run', function*() {
-    const noop = $ => undefined;
-    const n = new NextPage({
-      action: noop,
+  it('when url empty in run', async () => {
+    const noop = $ => undefined
+    const n = new NextPageKit({
+      getCurrent: noop,
       hasNext: noop,
-      getNext: noop
-    });
+      getNext: noop,
+    })
 
     try {
-      yield n.run();
+      await n.run()
     } catch (e) {
-      e.should.be.Error();
-      e.message.should.match(/url/).match(/empty/);
+      e.should.be.Error()
+      e.message.should.match(/url/).match(/empty/)
     }
-  });
-});
+  })
+})
